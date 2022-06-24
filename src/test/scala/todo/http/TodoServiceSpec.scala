@@ -17,7 +17,7 @@ object TodoServiceSpec extends DefaultRunnableSpec {
   type TodoTask[A] = RIO[TodoRepository with Tracing.Service, A]
 
   val app =
-    new TodoService[TodoRepository with Tracing.Service]().routes("").orNotFound
+    new TodoAPI[TodoRepository with Tracing.Service]().routes("").orNotFound
 
   override def spec =
     suite("TodoService")(

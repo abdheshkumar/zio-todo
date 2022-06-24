@@ -1,3 +1,5 @@
+package app
+
 import zio._
 
 trait Logging {

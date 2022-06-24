@@ -27,8 +27,8 @@ lazy val root = (project in file("."))
     dockerBaseImage := "openjdk:11-jre-slim-buster",
     Docker / dockerExposedPorts := Seq(8080),
     libraryDependencies ++= Dependencies.App,
-    name := "zio-todo-backend",
+    name := "zio-expedia",
     ThisBuild / scalacOptions := Options
       .scalacOptions(scalaVersion.value, isSnapshot.value),
-    testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework"))
+    testFrameworks ++= Seq(new TestFramework("zio.test.sbt.ZTestFramework"))
   )

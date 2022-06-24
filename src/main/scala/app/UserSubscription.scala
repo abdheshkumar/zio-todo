@@ -1,8 +1,8 @@
-import zio._
+package app
+
+import zio.ZIO
 
 object UserSubscription {
-
-
 
   def subscribe(
       user: User

@@ -6,7 +6,7 @@ import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Router
 import org.http4s.server.middleware.CORS
 import todo.config.AppConfig
-import todo.http.TodoService
+import todo.http.TodoAPI
 import todo.repository.{DoobieTodoRepository, TodoRepository}
 import todo.tracing.JaegerTracer
 import zio.interop.catz._
@@ -14,27 +14,23 @@ import zio.telemetry.opentelemetry.Tracing
 import zio.{ExitCode => ZExitCode, _}
 
 object Main extends zio.ZIOAppDefault {
-  type AppTask[A] =
-    RIO[AppConfig with TodoRepository with zio.Clock with Tracing.Service, A]
+  type ENV =  AppConfig with TodoRepository with zio.Clock with Tracing.Service
+  type AppTask[A] = RIO[ENV, A]
 
   override def run: ZIO[ZEnv, Nothing, ZExitCode] = {
 
-    val prog: ZIO[
-      AppConfig with TodoRepository with zio.Clock with Tracing.Service,
-      Throwable,
-      ZExitCode
-    ] =
+    val prog: ZIO[ENV, Throwable, ZExitCode] =
       for {
         cfg <- ZIO.service[AppConfig]
         // _ <- logging.log.info(s"Starting with $cfg")
         httpApp = Router[AppTask](
-          "/todos" -> new TodoService().routes(s"${cfg.http.baseUrl}/todos")
+          "/todos" -> new TodoAPI().routes(s"${cfg.http.baseUrl}/todos")
         ).orNotFound
 
         _ <- runHttp(httpApp, cfg.http.port)
       } yield ZExitCode.success
 
-    val tracing = (AppConfig.live >>> JaegerTracer.live >>> Tracing.live)
+    val tracing = AppConfig.live >>> JaegerTracer.live >>> Tracing.live
     val app =
       tracing ++ zio.Clock.live ++ AppConfig.live ++ (AppConfig.live ++ zio.Clock.live ++ tracing >>> DoobieTodoRepository.layer)
     prog

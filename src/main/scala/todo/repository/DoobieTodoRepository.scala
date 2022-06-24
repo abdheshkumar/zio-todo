@@ -15,6 +15,8 @@ import zio._
 import zio.interop.catz._
 import zio.telemetry.opentelemetry.Tracing
 
+import scala.concurrent.Future
+
 final private class DoobieTodoRepository(
     xa: Transactor[Task],
     tracing: Tracing.Service
@@ -132,8 +134,8 @@ object DoobieTodoRepository {
         val dispatcherZIO: ZManaged[Any, Throwable, Dispatcher[Task]] =
           Dispatcher[Task].allocated.toManaged
             .flatMap { case (dispatcher, closeDispatcher) =>
-              ZManaged.acquireRelease(ZIO.apply(new Dispatcher[Task] {
-                override def unsafeToFutureCancelable[A](fa: Task[A]) =
+              ZManaged.acquireRelease(ZIO(a = new Dispatcher[Task] {
+                override def unsafeToFutureCancelable[A](fa: Task[A]): (Future[A], () => Future[Unit]) =
                   dispatcher.unsafeToFutureCancelable(fa)
               }))(closeDispatcher.orDie)
 

@@ -1,3 +1,5 @@
+package app
+
 import zio.{Task, ULayer, ZIO, ZLayer}
 
 // service definition

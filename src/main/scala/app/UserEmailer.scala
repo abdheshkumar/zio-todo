@@ -1,3 +1,5 @@
+package app
+
 import zio.{Task, ZIO, ZLayer}
 
 // service definition
@@ -15,15 +17,7 @@ object UserEmailer {
     ZLayer.succeed(new UserEmailer {
       override def sendEmail(user: User, message: String): Task[Unit] =
         Task {
-          println(s"[User emailer] sending '$message' to ${user.email}")
-        }
-    })
-
-  val liveLayer1: ZLayer[Any, Nothing, UserEmailer] =
-    ZLayer.succeed(new UserEmailer {
-      override def sendEmail(user: User, message: String): Task[Unit] =
-        Task {
-          println(s"[User emailer] sending '$message' to ${user.email}")
+          println(s"[app.User emailer] sending '$message' to ${user.email}")
         }
     })
 

@@ -1,8 +1,11 @@
-POST http://localhost:8080/todos
+GET http://localhost:8081/todos/1
+Accept: application/json
+
+###
+POST http://localhost:8081/todos
 Content-Type: application/json
 
 {
   "title": "todo-1"
 }
-
 ###

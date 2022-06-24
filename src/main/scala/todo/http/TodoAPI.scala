@@ -23,8 +23,14 @@ import zio.telemetry.opentelemetry.Tracing.root
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
-class TodoService[R <: TodoRepository with Tracing.Service] {
+class TodoAPI[R <: TodoRepository with Tracing.Service] {
   type TodoTask[A] = RIO[R, A]
+
+  implicit def circeJsonDecoder[A: Decoder]: EntityDecoder[TodoTask, A] =
+    jsonOf[TodoTask, A]
+
+  implicit def circeJsonEncoder[A: Encoder]: EntityEncoder[TodoTask, A] =
+    jsonEncoderOf[TodoTask, A]
 
   val dsl: Http4sDsl[TodoTask] = Http4sDsl[TodoTask]
   import dsl._
@@ -47,7 +53,11 @@ class TodoService[R <: TodoRepository with Tracing.Service] {
       service: HttpRoutes[TodoTask]
   ): HttpRoutes[TodoTask] = Kleisli { (req: Request[TodoTask]) =>
     val response =
-      root(s"HTTP ${req.method.name} ${req.uri.renderString}", SpanKind.SERVER, errorMapper) {
+      root(
+        s"HTTP ${req.method.name} ${req.uri.renderString}",
+        SpanKind.SERVER,
+        errorMapper
+      ) {
         for {
           _ <- Tracing.addEvent("event from backend before response")
           carrier <- UIO(mutable.Map[String, String]().empty)
@@ -72,13 +82,6 @@ class TodoService[R <: TodoRepository with Tracing.Service] {
   }
 
   def routes(rootUri: String): HttpRoutes[RIO[R, *]] = tracingService {
-
-    implicit def circeJsonDecoder[A: Decoder]: EntityDecoder[TodoTask, A] =
-      jsonOf[TodoTask, A]
-
-    implicit def circeJsonEncoder[A: Encoder]: EntityEncoder[TodoTask, A] =
-      jsonEncoderOf[TodoTask, A]
-
     HttpRoutes.of[TodoTask] {
       case GET -> Root / LongVar(id) =>
         for {
