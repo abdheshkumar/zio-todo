@@ -9,9 +9,15 @@ object UserSubscription {
   ): ZIO[UserDb with Logging with UserEmailer, Throwable, Unit] =
     for {
       _ <- UserDb.insert(user)
-      _ <- Logging(_.log("User saved in DB"))
+      _ <- Logging.log("User saved in DB")
       _ <- UserEmailer.sendEmail(user, "Welcome to ZIO library")
-      _ <- Logging(_.log("Email sent"))
+      _ <- Logging.log("Email sent")
+      _ <- ZIO.logFatal("Fatal")
+      _ <- ZIO.logError("Error")
+      _ <- ZIO.logWarning("Warning")
+      _ <- ZIO.logInfo("Info")
+      _ <- ZIO.logDebug("Debug")
+      _ <- ZIO.logTrace("Trace")
     } yield ()
 
 }

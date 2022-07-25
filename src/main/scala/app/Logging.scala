@@ -6,7 +6,10 @@ trait Logging {
   def log(line: String): UIO[Unit]
 }
 
-object Logging extends Accessible[Logging] {
+object Logging {
+
+  def log(line: String): ZIO[Logging, Nothing, Unit] =
+    ZIO.serviceWithZIO[Logging](_.log(line))
 
   val liveLayer: ZLayer[Console with Clock, Nothing, Logging] = ZLayer(for {
     clock <- ZIO.service[Clock]

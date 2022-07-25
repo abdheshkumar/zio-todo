@@ -5,7 +5,7 @@ import crud.infrastructure.CRUDOperation._
 import crud.infrastructure.environments.EmployeeRepositoryEnv
 import crud.infrastructure.{CRUDOperation, Controller}
 import zio.Console.{printLine, readLine}
-import zio.{Console, ZEnv, ZIO, ZIOAppArgs}
+import zio.{Console, Scope, ZIO, ZIOAppArgs, ZLayer}
 
 import java.io.IOException
 import scala.util.Try
@@ -15,9 +15,9 @@ object Application extends zio.ZIOAppDefault {
   type ApplicationEnvironment = Console with EmployeeRepository
 
   private val localApplicationEnvironment =
-    Console.live ++ EmployeeRepositoryEnv.inMemory
+    ZLayer.succeed(Console.ConsoleLive) ++ EmployeeRepositoryEnv.inMemory
 
-  override def run: ZIO[ZEnv with ZIOAppArgs, Any, Any] = {
+  override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] = {
     for {
       args <- ZIOAppArgs.getArgs
       profile = Try(args.head).getOrElse("")
@@ -27,7 +27,6 @@ object Application extends zio.ZIOAppDefault {
         else printLine(s"Unsupported profile $profile").orDie *> ZIO.succeed(1)
 
     } yield ()
-
   }
 
   def help(): ZIO[Console, IOException, Unit] =

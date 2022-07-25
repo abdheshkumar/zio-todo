@@ -1,6 +1,5 @@
 package todo.repository
 
-import cats.effect.std.Dispatcher
 import cats.implicits._
 import doobie._
 import doobie.free.connection
@@ -8,14 +7,11 @@ import doobie.hikari._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import io.opentelemetry.api.trace.{SpanKind, StatusCode}
-import org.flywaydb.core.Flyway
 import todo._
-import todo.config.{AppConfig, DatabaseConfig}
+import todo.config.AppConfig
 import zio._
 import zio.interop.catz._
 import zio.telemetry.opentelemetry.Tracing
-
-import scala.concurrent.Future
 
 final private class DoobieTodoRepository(
     xa: Transactor[Task],
@@ -38,7 +34,7 @@ final private class DoobieTodoRepository(
           .to[List]
           .transact(xa)
       )
-      .provideService(tracing)
+      .provideLayer(ZLayer.succeed(tracing))
   }
 
   override def getById(id: TodoId): Task[Option[TodoItem]] = Tracing
@@ -52,7 +48,7 @@ final private class DoobieTodoRepository(
         .option
         .transact(xa)
     )
-    .provideService(tracing)
+    .provideLayer(ZLayer.succeed(tracing))
 
   override def delete(id: TodoId): Task[Unit] = Tracing
     .span(
@@ -66,9 +62,9 @@ final private class DoobieTodoRepository(
         .transact(xa)
         .unit
     )
-    .provideService(tracing)
+    .provideLayer(ZLayer.succeed(tracing))
 
-  override def deleteAll: Task[Unit] = Tracing
+  override def deleteAll(): Task[Unit] = Tracing
     .span(
       "deleteAll",
       SpanKind.INTERNAL,
@@ -78,7 +74,7 @@ final private class DoobieTodoRepository(
         .transact(xa)
         .unit
     )
-    .provideService(tracing)
+    .provideLayer(ZLayer.succeed(tracing))
 
   override def create(
       todoItemForm: TodoItemPostForm
@@ -95,7 +91,7 @@ final private class DoobieTodoRepository(
           .map(id => todoItemForm.asTodoItem(TodoId(id)))
           .transact(xa)
       )
-      .provideService(tracing)
+      .provideLayer(ZLayer.succeed(tracing))
 
   }
 
@@ -118,51 +114,22 @@ object DoobieTodoRepository {
     Throwable,
     TodoRepository
   ] = {
-    def initDb(cfg: DatabaseConfig): Task[Unit] =
-      Task {
-        Flyway
-          .configure()
-          .dataSource(cfg.url, cfg.user, cfg.password)
-          .load()
-          .migrate()
-      }.unit
+    val program = for {
+      cfg <- ZIO.service[AppConfig]
+      tracing <- ZIO.service[Tracing.Service]
+      ex <- ZIO.blockingExecutor
+      transactor <- HikariTransactor
+        .newHikariTransactor[Task](
+          cfg.database.driver,
+          cfg.database.url,
+          cfg.database.user,
+          cfg.database.password,
+          ex.asExecutionContext
+        )
+        .toScopedZIO
+    } yield new DoobieTodoRepository(transactor, tracing)
 
-    def mkTransactor(
-        cfg: DatabaseConfig
-    ): ZManaged[Clock, Throwable, HikariTransactor[Task]] = {
-      ZIO.runtime[Clock].toManaged.flatMap { implicit rt =>
-        val dispatcherZIO: ZManaged[Any, Throwable, Dispatcher[Task]] =
-          Dispatcher[Task].allocated.toManaged
-            .flatMap { case (dispatcher, closeDispatcher) =>
-              ZManaged.acquireRelease(ZIO(a = new Dispatcher[Task] {
-                override def unsafeToFutureCancelable[A](fa: Task[A]): (Future[A], () => Future[Unit]) =
-                  dispatcher.unsafeToFutureCancelable(fa)
-              }))(closeDispatcher.orDie)
-
-            }
-
-        dispatcherZIO.flatMap { implicit dispatcher =>
-          HikariTransactor
-            .newHikariTransactor[Task](
-              cfg.driver,
-              cfg.url,
-              cfg.user,
-              cfg.password,
-              rt.runtimeConfig.blockingExecutor.asExecutionContext
-            )
-            .toManaged
-        }
-      }
-    }
-
-    ZLayer.fromManaged {
-      for {
-        cfg <- ZIO.service[AppConfig].toManaged
-        tracing <- ZIO.service[Tracing.Service].toManaged
-        _ <- initDb(cfg.database).toManaged
-        transactor <- mkTransactor(cfg.database)
-      } yield new DoobieTodoRepository(transactor, tracing)
-    }
+    ZLayer.scoped(program)
   }
 
   object SQL {

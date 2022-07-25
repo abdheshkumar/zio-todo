@@ -17,15 +17,15 @@ object JaegerTracer {
     ZLayer
       .service[AppConfig]
       .flatMap(c =>
-        (for {
-          spanExporter <- Task(
+        ZLayer.fromZIO(for {
+          spanExporter <- ZIO.attempt(
             JaegerGrpcSpanExporter
               .builder()
               .setEndpoint(c.get.tracer.host)
               .build()
           )
-          spanProcessor <- UIO(SimpleSpanProcessor.create(spanExporter))
-          tracerProvider <- UIO {
+          spanProcessor <- ZIO.succeed(SimpleSpanProcessor.create(spanExporter))
+          tracerProvider <- ZIO.succeed {
             val serviceNameResource = Resource.create(
               Attributes
                 .of(ResourceAttributes.SERVICE_NAME, "zio-todo-example")
@@ -36,14 +36,14 @@ object JaegerTracer {
               .setResource(Resource.getDefault.merge(serviceNameResource))
               .build()
           }
-          openTelemetry <- UIO(
+          openTelemetry <- ZIO.succeed(
             OpenTelemetrySdk.builder().setTracerProvider(tracerProvider).build()
           )
-          tracer <- UIO(
+          tracer <- ZIO.succeed(
             openTelemetry
               .getTracer("zio.telemetry.opentelemetry.example.JaegerTracer")
           )
-        } yield tracer).toLayer
+        } yield tracer)
       )
 
 }

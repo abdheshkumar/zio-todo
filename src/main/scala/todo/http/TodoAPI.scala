@@ -4,11 +4,7 @@ import cats.data.{Kleisli, OptionT}
 import io.circe.{Decoder, Encoder}
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator
 import io.opentelemetry.api.trace.{SpanKind, StatusCode}
-import io.opentelemetry.context.propagation.{
-  TextMapGetter,
-  TextMapPropagator,
-  TextMapSetter
-}
+import io.opentelemetry.context.propagation.{TextMapGetter, TextMapPropagator, TextMapSetter}
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
@@ -60,7 +56,7 @@ class TodoAPI[R <: TodoRepository with Tracing.Service] {
       ) {
         for {
           _ <- Tracing.addEvent("event from backend before response")
-          carrier <- UIO(mutable.Map[String, String]().empty)
+          carrier <- ZIO.succeed(mutable.Map[String, String]().empty)
           _ <- Tracing.setAttribute("http.method", s"${req.method.name}")
           //_ <- Tracing.inject(propagator, carrier, setter)
           response <- service(
@@ -69,8 +65,8 @@ class TodoAPI[R <: TodoRepository with Tracing.Service] {
             )
           ).value
           res <- response match {
-            case Some(value) => RIO.succeed(value)
-            case None        => RIO.succeed(Response[TodoTask](Status.NotFound))
+            case Some(value) => ZIO.succeed(value)
+            case None        => ZIO.succeed(Response[TodoTask](Status.NotFound))
           }
           _ <- Tracing.addEvent("event from backend after response")
 
@@ -85,37 +81,38 @@ class TodoAPI[R <: TodoRepository with Tracing.Service] {
     HttpRoutes.of[TodoTask] {
       case GET -> Root / LongVar(id) =>
         for {
-          todo <- TodoRepository(_.getById(TodoId(id)))
+          todo <- TodoRepository.getById(TodoId(id))
           response <- todo.fold(NotFound())(x =>
             Ok(TodoItemWithUri(rootUri, x))
           )
         } yield response
 
       case GET -> Root =>
-        Ok(TodoRepository(_.getAll).map(_.map(TodoItemWithUri(rootUri, _))))
+        Ok(TodoRepository.getAll.map(_.map(TodoItemWithUri(rootUri, _))))
 
       case req @ POST -> Root =>
         req.decode[TodoItemPostForm] { todoItemForm =>
-          TodoRepository(_.create(todoItemForm))
+          TodoRepository
+            .create(todoItemForm)
             .map(TodoItemWithUri(rootUri, _))
             .flatMap(Created(_))
         }
 
       case DELETE -> Root / LongVar(id) =>
         for {
-          item <- TodoRepository(_.getById(TodoId(id)))
+          item <- TodoRepository.getById(TodoId(id))
           result <- item
-            .map(x => TodoRepository(_.delete(x.id)))
+            .map(x => TodoRepository.delete(x.id))
             .fold(NotFound())(_.flatMap(Ok(_)))
         } yield result
 
       case DELETE -> Root =>
-        TodoRepository(_.deleteAll) *> Ok()
+        TodoRepository.deleteAll() *> Ok()
 
       case req @ PATCH -> Root / LongVar(id) =>
         req.decode[TodoItemPatchForm] { updateForm =>
           for {
-            update <- TodoRepository(_.update(TodoId(id), updateForm))
+            update <- TodoRepository.update(TodoId(id), updateForm)
             response <- update.fold(NotFound())(x =>
               Ok(TodoItemWithUri(rootUri, x))
             )

@@ -4,21 +4,21 @@ object Dependencies {
 
   object Versions {
     val betterMonadicFor = "0.3.1"
-    val circe = "0.14.1"
+    val circe = "0.14.2"
     val doobie = "1.0.0-RC2"
-    val flyway = "8.5.11"
+    val flyway = "8.5.12"
     val h2 = "2.1.212"
-    val http4s = "0.23.11"
+    val http4s = "0.23.12"
     val jawn = "1.3.2"
     val kindProjector = "0.13.2"
     val log4j = "2.17.2"
     val organizeImports = "0.6.0"
     val pureConfig = "0.17.1"
-    val zio = "2.0.0-RC2"
+    val zio = "2.0.0"
     val zioOpentelemetry = "2.0.0-RC1"
-    val zioInteropCats = "3.3.0-RC2"
-    val zioLogging = "2.0.0-RC5"
-    val opentelemetry = "1.14.0"
+    val zioInteropCats = "3.3.0"
+    val zioLogging = "2.0.0"
+    val opentelemetry = "1.15.0"
 
   }
   import Versions._

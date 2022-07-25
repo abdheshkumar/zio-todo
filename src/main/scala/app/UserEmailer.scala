@@ -16,7 +16,7 @@ object UserEmailer {
   val liveLayer: ZLayer[Any, Nothing, UserEmailer] =
     ZLayer.succeed(new UserEmailer {
       override def sendEmail(user: User, message: String): Task[Unit] =
-        Task {
+        ZIO.attempt {
           println(s"[app.User emailer] sending '$message' to ${user.email}")
         }
     })

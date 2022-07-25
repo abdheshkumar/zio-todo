@@ -13,11 +13,13 @@ import zio.interop.catz._
 import zio.telemetry.opentelemetry.Tracing
 import zio.{ExitCode => ZExitCode, _}
 
+import scala.concurrent.ExecutionContext
+
 object Main extends zio.ZIOAppDefault {
-  type ENV =  AppConfig with TodoRepository with zio.Clock with Tracing.Service
+  type ENV = AppConfig with TodoRepository with zio.Clock with Tracing.Service
   type AppTask[A] = RIO[ENV, A]
 
-  override def run: ZIO[ZEnv, Nothing, ZExitCode] = {
+  override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] = {
 
     val prog: ZIO[ENV, Throwable, ZExitCode] =
       for {
@@ -30,14 +32,21 @@ object Main extends zio.ZIOAppDefault {
         _ <- runHttp(httpApp, cfg.http.port)
       } yield ZExitCode.success
 
-    val tracing = AppConfig.live >>> JaegerTracer.live >>> Tracing.live
+    val app = prog.provide(
+      AppConfig.live,
+      JaegerTracer.live,
+      DoobieTodoRepository.layer,
+      Tracing.live,
+      ZLayer.succeed(zio.Clock.ClockLive)
+    )
+    /* val tracing = AppConfig.live >>> JaegerTracer.live >>> Tracing.live
     val app =
-      tracing ++ zio.Clock.live ++ AppConfig.live ++ (AppConfig.live ++ zio.Clock.live ++ tracing >>> DoobieTodoRepository.layer)
-    prog
-      .provideLayer(
-        app
-      )
-      .orDie
+      ZLayer.succeed(zio.Clock.ClockLive) >>> (tracing ++ ZLayer.succeed(
+        zio.Clock.ClockLive
+      ) ++ AppConfig.live ++ (AppConfig.live ++ ZLayer.succeed(
+        zio.Clock.ClockLive
+      ) ++ tracing >>> DoobieTodoRepository.layer))*/
+    app.orDie
   }
 
   def runHttp[R <: zio.Clock](
@@ -45,9 +54,9 @@ object Main extends zio.ZIOAppDefault {
       port: Int
   ): ZIO[R, Throwable, Unit] = {
     type Task[A] = RIO[R, A]
-    ZIO.runtime[R].flatMap { implicit rts =>
+    ZIO.runtime[R].flatMap { _ =>
       BlazeServerBuilder[Task]
-        .withExecutionContext(rts.runtimeConfig.executor.asExecutionContext)
+        .withExecutionContext(ExecutionContext.global)
         .bindHttp(port, "0.0.0.0")
         .withHttpApp(CORS.policy.withAllowOriginAll(httpApp))
         .serve
