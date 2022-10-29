@@ -8,17 +8,17 @@ object Dependencies {
     val doobie = "1.0.0-RC2"
     val flyway = "9.6.0"
     val h2 = "2.1.214"
-    val http4s = "0.23.12"
+    val http4s = "0.23.16"
     val jawn = "1.4.0"
     val kindProjector = "0.13.2"
     val log4j = "2.19.0"
     val organizeImports = "0.6.0"
     val pureConfig = "0.17.1"
     val zio = "2.1.2"
-    val zioOpentelemetry = "2.0.0-RC1"
+    val zioOpentelemetry = "2.0.3"
     val zioInteropCats = "22.0.0.0"
-    val zioLogging = "2.1.2"
-    val opentelemetry = "1.15.0"
+    val zioLogging = "2.0.0"
+    val opentelemetry = "1.19.0
 
   }
   import Versions._
