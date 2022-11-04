@@ -15,7 +15,7 @@ import zio.telemetry.opentelemetry.Tracing
 
 final private class DoobieTodoRepository(
     xa: Transactor[Task],
-    tracing: Tracing.Service
+    tracing: Tracing
 ) extends TodoRepository {
   import DoobieTodoRepository.SQL
 
@@ -110,13 +110,13 @@ final private class DoobieTodoRepository(
 object DoobieTodoRepository {
 
   def layer: ZLayer[
-    Clock with AppConfig with Tracing.Service,
+    Clock with AppConfig with Tracing,
     Throwable,
     TodoRepository
   ] = {
     val program = for {
       cfg <- ZIO.service[AppConfig]
-      tracing <- ZIO.service[Tracing.Service]
+      tracing <- ZIO.service[Tracing]
       ex <- ZIO.blockingExecutor
       transactor <- HikariTransactor
         .newHikariTransactor[Task](

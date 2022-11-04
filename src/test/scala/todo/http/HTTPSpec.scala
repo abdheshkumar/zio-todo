@@ -25,8 +25,8 @@ object HTTPSpec {
       actual <- actual
       bodyResult <- expectedBody
         .fold[RIO[R, TestResult]](
-          assertM(actual.bodyText.compile.toVector)(isEmpty)
-        )(expected => assertM(actual.as[A])(equalTo(expected)))
+          assertZIO(actual.bodyText.compile.toVector)(isEmpty)
+        )(expected => assertZIO(actual.as[A])(equalTo(expected)))
       statusResult = assert(actual.status)(equalTo(expectedStatus))
     } yield bodyResult && statusResult
 

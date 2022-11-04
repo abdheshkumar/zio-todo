@@ -13,11 +13,11 @@ import zio.interop.catz._
 import zio.telemetry.opentelemetry.Tracing
 import zio.test._
 
-object TodoServiceSpec extends DefaultRunnableSpec {
-  type TodoTask[A] = RIO[TodoRepository with Tracing.Service, A]
+object TodoServiceSpec extends ZIOSpecDefault {
+  type TodoTask[A] = RIO[TodoRepository with Tracing, A]
 
   val app =
-    new TodoAPI[TodoRepository with Tracing.Service]().routes("").orNotFound
+    new TodoAPI[TodoRepository with Tracing]().routes("").orNotFound
 
   override def spec =
     suite("TodoService")(
@@ -108,9 +108,11 @@ object TodoServiceSpec extends DefaultRunnableSpec {
             ]""")
         )
       }
-    ).provideSomeLayer[ZEnv](
-      InMemoryTodoRepository.layer ++ (ZLayer.succeed(
+    ).provide(
+      InMemoryTodoRepository.layer,
+      ZLayer.succeed(
         OpenTelemetry.noop().getTracer("test")
-      ) >>> Tracing.live)
+      ),
+      Tracing.live
     )
 }

@@ -16,7 +16,7 @@ final private class InMemoryTodoRepository(
   override def delete(id: TodoId): UIO[Unit] =
     ref.update(store => store - id).unit
 
-  override def deleteAll: UIO[Unit] = ref.update(_.empty).unit
+  override def deleteAll(): UIO[Unit] = ref.update(_.empty).unit
 
   override def create(todoItemForm: TodoItemPostForm): UIO[TodoItem] =
     for {

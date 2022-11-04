@@ -16,7 +16,7 @@ import zio.{ExitCode => ZExitCode, _}
 import scala.concurrent.ExecutionContext
 
 object Main extends zio.ZIOAppDefault {
-  type ENV = AppConfig with TodoRepository with zio.Clock with Tracing.Service
+  type ENV = AppConfig with TodoRepository with zio.Clock with Tracing
   type AppTask[A] = RIO[ENV, A]
 
   override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] = {

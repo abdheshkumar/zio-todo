@@ -19,7 +19,7 @@ import zio.telemetry.opentelemetry.Tracing.root
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
-class TodoAPI[R <: TodoRepository with Tracing.Service] {
+class TodoAPI[R <: TodoRepository with Tracing] {
   type TodoTask[A] = RIO[R, A]
 
   implicit def circeJsonDecoder[A: Decoder]: EntityDecoder[TodoTask, A] =
