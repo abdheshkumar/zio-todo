@@ -9,6 +9,7 @@ object Dependencies {
     val flyway = "9.6.0"
     val h2 = "2.1.214"
     val http4s = "0.23.16"
+    val http4sBlaze ="0.23.12"
     val jawn = "1.4.0"
     val kindProjector = "0.13.2"
     val log4j = "2.19.0"
@@ -42,7 +43,7 @@ object Dependencies {
       "org.apache.logging.log4j" % "log4j-core" % log4j,
       "org.apache.logging.log4j" % "log4j-slf4j-impl" % log4j,
       "org.flywaydb" % "flyway-core" % flyway,
-      "org.http4s" %% "http4s-blaze-server" % http4s,
+      "org.http4s" %% "http4s-blaze-server" % http4sBlaze,
       "org.http4s" %% "http4s-circe" % http4s,
       "org.http4s" %% "http4s-dsl" % http4s,
       "org.tpolecat" %% "doobie-core" % doobie,
