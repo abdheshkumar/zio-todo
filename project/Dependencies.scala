@@ -4,7 +4,7 @@ object Dependencies {
 
   object Versions {
     val betterMonadicFor = "0.3.1"
-    val circe = "0.14.4"
+    val circe = "0.14.5"
     val doobie = "1.0.0-RC2"
     val flyway = "9.15.1"
     val h2 = "2.1.214"
