@@ -1,4 +1,4 @@
-addSbtPlugin("org.scalameta"     % "sbt-scalafmt"              % "2.5.0")
+addSbtPlugin("org.scalameta"     % "sbt-scalafmt"              % "2.5.2")
 addSbtPlugin("ch.epfl.scala"     % "sbt-scalafix"              % "0.11.0")
 addSbtPlugin("com.github.gseitz" % "sbt-release"               % "1.0.13")
 addSbtPlugin("com.typesafe.sbt"  % "sbt-native-packager"       % "1.8.1")
