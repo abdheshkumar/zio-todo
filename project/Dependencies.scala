@@ -7,7 +7,7 @@ object Dependencies {
     val circe = "0.14.6"
     val doobie = "1.0.0-RC4"
     val flyway = "9.21.2"
-    val h2 = "2.2.220"
+    val h2 = "2.2.222"
     val http4s = "0.23.23"
     val http4sBlaze ="0.23.15"
     val jawn = "1.5.1"
