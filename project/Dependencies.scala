@@ -56,7 +56,7 @@ object Dependencies {
           CrossVersion.full
         )
       ),
-      "org.scalatest" %% "scalatest" % "3.2.17" % Test,
+      "org.scalatest" %% "scalatest" % "3.2.18" % Test,
       "org.scalatestplus" %% "scalacheck-1-16" % "3.2.14.0" % Test
     )
 
