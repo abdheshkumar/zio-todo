@@ -12,7 +12,7 @@ object Dependencies {
     val http4sBlaze ="0.23.16"
     val jawn = "1.5.1"
     val kindProjector = "0.13.2"
-    val log4j = "2.22.1"
+    val log4j = "2.23.0"
     val organizeImports = "0.6.0"
     val pureConfig = "0.17.5"
     val zio = "2.0.21"
