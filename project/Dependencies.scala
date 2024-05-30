@@ -10,7 +10,7 @@ object Dependencies {
     val h2 = "2.2.224"
     val http4s = "0.23.27"
     val http4sBlaze ="0.23.16"
-    val jawn = "1.5.1"
+    val jawn = "1.6.0"
     val kindProjector = "0.13.3"
     val log4j = "2.23.1"
     val organizeImports = "0.6.0"
