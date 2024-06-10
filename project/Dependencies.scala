@@ -14,7 +14,7 @@ object Dependencies {
     val kindProjector = "0.13.3"
     val log4j = "2.23.1"
     val organizeImports = "0.6.0"
-    val pureConfig = "0.17.6"
+    val pureConfig = "0.17.7"
     val zio = "2.1.2"
     val zioOpentelemetry = "2.0.3"
     val zioInteropCats = "3.3.0"
