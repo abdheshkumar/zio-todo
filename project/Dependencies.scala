@@ -17,7 +17,7 @@ object Dependencies {
     val pureConfig = "0.17.7"
     val zio = "2.1.5"
     val zioOpentelemetry = "2.0.3"
-    val zioInteropCats = "3.3.0"
+    val zioInteropCats = "23.1.0.2"
     val zioLogging = "2.3.0"
     val opentelemetry = "1.27.0"
 
